@@ -81,8 +81,9 @@ Developers can run fixture-only checks from a sibling KITE checkout with its uv 
 ```sh
 uv run --locked --no-sync python ../kite_plugins/plugins/gopass/backend.py
 uv run --locked --no-sync python -m tests.check_gopass_sync
+uv run --locked --no-sync python -m tests.check_gopass_copy
 ```
 
-The backend check mocks its commands. The sync check uses a fake Gopass executable and temporary local Git repositories, not real credentials, password entries, GitHub or a live store. Set `KITE_GOPASS_SOURCE` if the package is not in the default sibling checkout.
+The copy check verifies normal CLIPBOARD selection—not PRIMARY—and forwards only a dummy value through fake copy executables; it never reads or changes the live clipboard. The backend check mocks its commands. The sync check uses a fake Gopass executable and temporary local Git repositories, not real credentials, password entries, GitHub or a live store. Set `KITE_GOPASS_SOURCE` if the package is not in the default sibling checkout.
 
 For KITE integration details, see its [plugin guide](https://github.com/Kabil777/kite/blob/main/docs/plugins.md) and [frontend reference](https://github.com/Kabil777/kite/blob/main/docs/frontend.md).

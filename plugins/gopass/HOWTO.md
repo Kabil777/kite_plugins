@@ -38,6 +38,8 @@ If you do not have a gopass store yet, follow the setup instructions at https://
 
 Browsing never unlocks or copies a password. Unlocking reveals only the copy choices; the password itself stays hidden. **Copy path** copies the entry's name, not its password.
 
+**Copy password** uses the normal system clipboard for **Ctrl+V**, not KITE's search buffer or the middle-click PRIMARY selection. A separate clipboard-history manager may keep copied values, and KITE does not automatically clear them. To test your own desktop, use a disposable entry containing only dummy text and paste that value into an editor. Never paste a real password into a terminal, issue report or diagnostic command.
+
 ## Go back
 
 Escape returns one screen at a time:
@@ -75,19 +77,31 @@ Inside Passwords, press **Ctrl+S**, or choose **Actions → Sync passwords**. Sy
 
 ### Set up a remote
 
-Use an existing private Git repository that you control. In a terminal, check the default store:
+Open a **regular terminal**—for example Kitty, Konsole or GNOME Terminal. Do **not** enter these commands into KITE's search field, its password form or a Python prompt. You can run them from any folder: `gopass` locates its configured store.
+
+Check the default store's remote:
 
 ```sh
 gopass git remote -v
 ```
 
-If it has no remote, add your repository URL:
+If `origin` already points to your intended private repository, leave it alone. If there is no `origin`, create/use a **separate private password-store repository**, replace the quoted placeholder below with its real Git URL, then run:
 
 ```sh
-gopass git remote add origin <your-private-repository-url>
+gopass git remote add origin 'YOUR_PRIVATE_STORE_GIT_URL'
 ```
 
-Replace the angle-bracket placeholder; do not type it literally. If you use a named mounted store, include `--store your-store` after `git`. Check gopass's own help if your version uses different options.
+Do not use KITE's application or plugin-registry repository as your password store. Those repositories are public and unrelated to your encrypted entries.
+
+If Passwords is configured for a mounted store alias such as `work`, use that same alias in the terminal instead:
+
+```sh
+gopass git --store work remote -v
+# Only if that store has no origin; replace the placeholder first:
+gopass git --store work remote add origin 'YOUR_PRIVATE_STORE_GIT_URL'
+```
+
+`work` is an example existing alias, not a new store. Omit `--store` for the default store. Check `gopass git --help` if your installed version uses different options. These commands inspect/configure the Git remote; they do not copy any password.
 
 Return to Passwords and retry **Ctrl+S**. KITE does not choose a repository, store your Git credentials, or configure remotes automatically. Git receives encrypted entries, but repository names and file paths can still reveal metadata; use a private repository.
 
