@@ -1,0 +1,8 @@
+{
+  "id": "gopass",
+  "name": "Passwords",
+  "api_version": 2,
+  "entry": "__init__.py",
+  "glyph": "\uf084",
+  "configuration": [{"key":"store","label":"Gopass mount alias (optional)","type":"text","default":"","placeholder":"Blank uses all mounted stores"}]
+}
