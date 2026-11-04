@@ -175,6 +175,7 @@ def main():
             settings_host = SettingsHost()
             marketplace = Marketplace(settings_host)
             marketplace.page = 'plugin_config'
+            marketplace.target = manifest
             marketplace.rows = {manifest['id']: manifest}
             marketplace.config_fields = manifest['configuration']
             marketplace.show_details()

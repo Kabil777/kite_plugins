@@ -55,6 +55,7 @@ The worker keeps a metadata-only file index so typing does not rescan folders on
 
 ## Troubleshooting
 
+- **Settings opens a blank page:** the original KITE v0.1.0 has a selection bug. Use KITE's current main with the [Settings fix](https://github.com/Kabil777/kite/commit/11d7b494f44e48b5ff4194f7bbc00f4c3522d8c3), then close and reopen KITE.
 - **No images:** save valid existing folders in Settings, check permissions and supported extensions, then refresh. Hidden files and nested symlinks are deliberately excluded.
 - **File changed / selection expired:** return to the list, refresh and preview again. Deleted/replaced files are not silently substituted for the old selection.
 - **awww not installed:** install it outside KITE. Nothing is compiled or downloaded by this plugin.
