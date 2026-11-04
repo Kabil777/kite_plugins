@@ -1,0 +1,15 @@
+{
+  "id": "hyprland-wallpapers",
+  "name": "Hyprland Wallpapers",
+  "api_version": 2,
+  "glyph": "\uf03e",
+  "configuration": [
+    {
+      "key": "directories",
+      "label": "Wallpaper folders (JSON list)",
+      "type": "text",
+      "default": "[]",
+      "placeholder": "[\"~/Pictures/Wallpapers\", \"/path/to/more wallpapers\"]"
+    }
+  ]
+}

@@ -9,10 +9,11 @@ This repository holds optional plugin source packages, their individual guides, 
 | Plugin | What it adds | Requirements | Install and use |
 | --- | --- | --- | --- |
 | **Passwords (Gopass)** · `gopass` | Browse an existing store, explicitly copy/create entries, and manually sync | Configured `gopass`, KITE, systemd user services and cgroup v2 | [Plugin README](plugins/gopass/README.md) · [User guide](plugins/gopass/HOWTO.md) |
+| **Hyprland Wallpapers** · `hyprland-wallpapers` | Search configured folders, preview images and apply to all displays | KITE tool-worker support, Hyprland/Wayland and a running `awww-daemon` | [Plugin README](plugins/hyprland-wallpapers/README.md) · [User guide](plugins/hyprland-wallpapers/HOWTO.md) |
 
-Every directory under `plugins/` has its own README with setup, requirements and usage. Gopass is **not bundled with or installed by KITE's default installer**; follow its README only if you want it.
+Every directory under `plugins/` has its own README with setup, requirements and usage. These plugins are **not bundled with or installed by KITE's default installer**; follow a plugin's README only if you want it.
 
-**Marketplace status:** `index.json` is currently empty. Source installation of Gopass is available through its guide, but there are no published marketplace packages yet. Entries will be added only after a real release archive has been published and reviewed. Core protocol/search examples remain in [KITE's examples](https://github.com/Kabil777/kite/tree/main/examples).
+**Marketplace status:** `index.json` is currently empty. Source installation is available through each plugin's guide, but there are no published marketplace packages yet. Entries will be added only after a real release archive has been published and reviewed. Core protocol/search examples remain in [KITE's examples](https://github.com/Kabil777/kite/tree/main/examples).
 
 ## Add this registry to KITE
 
