@@ -2,14 +2,28 @@
   "id": "hyprland-wallpapers",
   "name": "Hyprland Wallpapers",
   "api_version": 2,
+  "entry": "__init__.py",
   "glyph": "\uf03e",
   "configuration": [
-    {
-      "key": "directories",
-      "label": "Wallpaper folders (JSON list)",
-      "type": "text",
-      "default": "[]",
-      "placeholder": "[\"~/Pictures/Wallpapers\", \"/path/to/more wallpapers\"]"
-    }
+    {"key":"directories","label":"Wallpaper folders","type":"directory_list","default":[],"max_items":16,"max_length":4096,"group":"Folders","help":"Add folders using Browse. Nested images are included; hidden entries and nested symlinks are skipped."},
+    {"key":"resize","label":"Fit","type":"choice","optional":true,"default":null,"options":["crop","fit","stretch","no"],"group":"Image","help":"Crop fills the screen; fit preserves the whole image; no keeps its original size."},
+    {"key":"transition_type","label":"Transition","type":"choice","optional":true,"default":null,"options":["none","simple","fade","left","right","top","bottom","wipe","wave","grow","center","any","outer","random"],"group":"Transition"},
+    {"key":"transition_duration","label":"Duration (s)","type":"number","optional":true,"default":null,"min":0,"max":120,"step":0.1,"decimals":3,"help":"Not used by simple or none. Simple uses Transition step instead; fade and directional effects use duration."},
+    {"key":"crop_gravity","label":"Crop position","type":"choice","optional":true,"default":null,"options":["top-left","top","top-right","left","center","right","bottom-left","bottom","bottom-right"],"group":"Image","advanced":true,"help":"Used with crop resize mode only."},
+    {"key":"fill_color","label":"Padding color (RGBA)","type":"color","optional":true,"default":null,"advanced":true},
+    {"key":"filter","label":"Scaling filter","type":"choice","optional":true,"default":null,"options":["Nearest","Bilinear","CatmullRom","Mitchell","Lanczos3"],"advanced":true},
+    {"key":"transition_step","label":"Transition step","type":"number","optional":true,"default":null,"integer":true,"min":1,"max":255,"advanced":true,"group":"Advanced transition","help":"Simple transition speed: awww normally uses 2. Larger values are faster; 255 is immediate."},
+    {"key":"transition_fps","label":"Transition FPS","type":"number","optional":true,"default":null,"integer":true,"min":1,"max":240,"advanced":true,"help":"KITE safety range: 1–240. awww normally uses 30."},
+    {"key":"transition_angle","label":"Wipe/wave angle","type":"number","optional":true,"default":null,"min":-360,"max":360,"advanced":true},
+    {"key":"position","label":"Transition position","type":"choice","optional":true,"default":null,"options":["center","top","left","right","bottom","top-left","top-right","bottom-left","bottom-right","custom-fraction","custom-pixels"],"advanced":true,"help":"Grow/outer origin. Custom modes require both X and Y below."},
+    {"key":"position_x","label":"Position X","type":"number","optional":true,"default":null,"min":0,"max":32768,"advanced":true},
+    {"key":"position_y","label":"Position Y","type":"number","optional":true,"default":null,"min":0,"max":32768,"advanced":true},
+    {"key":"bezier_x1","label":"Bézier X1","type":"number","optional":true,"default":null,"min":-10,"max":10,"advanced":true,"help":"Set all four Bézier coordinates together; all-zero is invalid."},
+    {"key":"bezier_y1","label":"Bézier Y1","type":"number","optional":true,"default":null,"min":-10,"max":10,"advanced":true},
+    {"key":"bezier_x2","label":"Bézier X2","type":"number","optional":true,"default":null,"min":-10,"max":10,"advanced":true},
+    {"key":"bezier_y2","label":"Bézier Y2","type":"number","optional":true,"default":null,"min":-10,"max":10,"advanced":true},
+    {"key":"wave_width","label":"Wave width","type":"number","optional":true,"default":null,"min":0.001,"max":10000,"advanced":true,"help":"Set wave width and height together."},
+    {"key":"wave_height","label":"Wave height","type":"number","optional":true,"default":null,"min":0.001,"max":10000,"advanced":true},
+    {"key":"invert_y","label":"Invert transition Y","type":"boolean","optional":true,"default":null,"advanced":true}
   ]
 }

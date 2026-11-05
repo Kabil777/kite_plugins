@@ -7,6 +7,17 @@ from pathlib import Path
 import shutil
 import stat
 import subprocess
+from plugin_api import validate_settings
+
+try:
+    with Path(__file__).with_name('plugin.json').open(encoding='utf-8') as stream:
+        contents = stream.read(16385)
+    if len(contents) > 16384:
+        raise ValueError('Manifest exceeds 16 KiB')
+    FIELDS = json.loads(contents)['configuration']
+    OPTION_FIELDS = [field for field in FIELDS if field['key'] != 'directories']
+except (OSError, ValueError, KeyError, TypeError) as error:
+    raise RuntimeError('Wallpaper package metadata is damaged; restore the reviewed package.') from error
 
 EXTENSIONS = {'.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.tif', '.tiff', '.avif'}
 MAX_IMAGES = 2000
@@ -33,12 +44,10 @@ def signature(info):
 
 
 def directories(value):
-    if not isinstance(value, str) or len(value) > 1024:
-        raise WallpaperError('Use a JSON folder list of at most 1,024 characters in Plugin Settings, for example ["~/Pictures/Wallpapers"].')
     try:
-        values = json.loads(value)
+        values = validate_settings([FIELDS[0]], {'directories': value})['directories']
     except (ValueError, RecursionError) as error:
-        raise WallpaperError('Use a JSON list of folders, for example ["~/Pictures/Wallpapers"].') from error
+        raise WallpaperError('Wallpaper folders need repair. Use Add/Browse in Plugin Settings.') from error
     if (not isinstance(values, list) or len(values) > 16
             or any(not isinstance(item, str) or not item.strip() or '\0' in item for item in values)):
         raise WallpaperError('Use a JSON list containing up to 16 nonempty folder paths.')
@@ -130,8 +139,62 @@ def validate(wallpaper, roots):
     return path
 
 
-def apply(wallpaper, roots, cancelled=lambda: False):
+def option_args(options):
+    try:
+        values = validate_settings(OPTION_FIELDS, options)
+    except ValueError as error:
+        raise WallpaperError(str(error)) from error
+    args = []
+    for name in ('resize', 'crop_gravity', 'fill_color', 'filter', 'transition_type', 'transition_duration',
+                 'transition_step', 'transition_fps', 'transition_angle'):
+        data = values[name]
+        if data is not None:
+            if name == 'fill_color':
+                data = data.lstrip('#')
+            args.append('--' + name.replace('_', '-') + '=' + str(data))
+    if values['crop_gravity'] is not None:
+        if values['resize'] not in (None, 'crop'):
+            raise WallpaperError('Crop position requires crop resize mode.')
+        if values['resize'] is None:
+            args.append('--resize=crop')
+    position = values['position']
+    coordinates = values['position_x'], values['position_y']
+    if position in ('custom-fraction', 'custom-pixels'):
+        if any(number is None for number in coordinates):
+            raise WallpaperError('Custom transition position needs both X and Y.')
+        if position == 'custom-fraction':
+            if any(not 0 <= number <= 1 for number in coordinates):
+                raise WallpaperError('Fraction positions must be between 0 and 1.')
+            text = ','.join(format(number, '.6f') for number in coordinates)
+        else:
+            if any(int(number) != number for number in coordinates):
+                raise WallpaperError('Pixel positions must be whole numbers.')
+            text = ','.join(str(int(number)) for number in coordinates)
+        args.append('--transition-pos=' + text)
+    elif position is not None:
+        args.append('--transition-pos=' + position)
+    elif any(number is not None for number in coordinates):
+        raise WallpaperError('Choose a custom position mode before setting X/Y.')
+    for names, flag in ((('bezier_x1', 'bezier_y1', 'bezier_x2', 'bezier_y2'), 'transition-bezier'),
+                        (('wave_width', 'wave_height'), 'transition-wave')):
+        numbers = [values[name] for name in names]
+        if any(number is not None for number in numbers):
+            if any(number is None for number in numbers):
+                raise WallpaperError('Set all ' + flag + ' coordinates together.')
+            if flag == 'transition-bezier' and not any(numbers):
+                raise WallpaperError('The all-zero Bézier curve is invalid; use 0,0,1,1 for linear.')
+            args.append('--' + flag + '=' + ','.join(str(number) for number in numbers))
+    environment = None
+    if values['invert_y'] is not None:
+        environment = {**os.environ, 'INVERT_Y': 'true' if values['invert_y'] else 'false'}
+    if values['invert_y']:
+        args.append('--invert-y')
+    return args, environment
+
+
+def apply(wallpaper, roots, cancelled=lambda: False, options=None):
     path = validate(wallpaper, roots)
+    args, environment = option_args(options or {})
     executable = shutil.which('awww')
     if executable is None:
         raise WallpaperError('awww is not installed. Install it and start awww-daemon in your Wayland session.')
@@ -139,7 +202,7 @@ def apply(wallpaper, roots, cancelled=lambda: False):
         raise WallpaperError('Wallpaper change cancelled before sending a request.')
     try:
         # No --outputs means all outputs in the normal daemon namespace, not all daemon instances.
-        subprocess.run([executable, 'img', '--', str(path)], check=True, timeout=5,
+        subprocess.run([executable, 'img', *args, '--', str(path)], check=True, timeout=5, env=environment,
                        stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except subprocess.TimeoutExpired as error:
         raise WallpaperError('awww timed out; the wallpaper may already have changed. Check before retrying.') from error

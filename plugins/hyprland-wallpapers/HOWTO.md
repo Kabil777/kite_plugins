@@ -1,69 +1,81 @@
 # Use Hyprland Wallpapers
 
-## Start the backend yourself
+## Backend setup
 
-Install `awww` using your distribution's packages or [its upstream instructions](https://codeberg.org/LGFae/awww). This plugin uses **awww**, not an automatic `swww` fallback.
-
-If no default `awww-daemon` is running, start it in a normal terminal inside your Hyprland session:
+Install [awww](https://codeberg.org/LGFae/awww) using your distribution's packages. If no default daemon is running, start it in a normal terminal **inside your Hyprland session**:
 
 ```sh
 awww-daemon &
 ```
 
-Do not start another copy if one is already running. For automatic startup, add it to your existing session startup configuration. In configurations using `hyprland.conf`, the usual entry is:
+Do not start a second copy. For `hyprland.conf` profiles, normal session autostart can use `exec-once = awww-daemon`; other configuration formats should use their existing startup mechanism. KITE never writes this configuration, starts/stops daemons or replaces competing wallpaper services. This plugin uses awww, not a silent swww fallback.
 
-```ini
-exec-once = awww-daemon
-```
+**Host compatibility:** update KITE and this source package together to current main, then close/reopen KITE. Original v0.1.0 assets do not include typed Settings, the save/navigation fixes or this split-view contract. No Rust compiler is needed for the plugin.
 
-Use your current Hyprland startup mechanism for other configuration formats. KITE never creates this entry, starts/stops a daemon, or replaces an existing wallpaper service. Do not run competing wallpaper services on the same outputs.
+## Add folders without JSON
 
-## Configure folders through Plugin Settings
+Open **Plugin marketplace → Installed → Hyprland Wallpapers → Options → Settings**, or the browser's **Settings** button / **Actions → Plugin Settings**.
 
-Open **Plugin marketplace → Installed → Hyprland Wallpapers → Options → Settings**. The one folder field holds a JSON list:
+- **Browse** selects a folder. Alternatively enter an absolute path or `~/Pictures/Wallpapers`, then click **Add**.
+- Double-click an item to edit; **Remove** deletes the selected entry; **Clear** empties the list.
+- **Save configuration** writes your preferences. Missing/unmounted folders warn when browsed, while available folders remain usable.
+- Up to 16 folders, 4,096 characters per path and 16 KiB total plugin settings. Spaces, commas and semicolons are literal path characters; `$HOME` shell expansion is not performed.
 
-```json
-["~/Pictures/Wallpapers", "/mnt/photos/wallpapers"]
-```
+Folders need not live in the checkout. An explicitly configured folder symlink resolves to its allowed target; nested folder/file symlinks and hidden entries are excluded. An empty list intentionally scans nothing. Existing valid JSON-array strings migrate in memory and are written as YAML lists only on explicit Save. Malformed legacy data remains an error: use Clear/Add/Browse to repair it instead of silently losing the old setting.
 
-Use double quotes and commas as shown. Spaces, commas and semicolons inside quoted folder names are supported. Use absolute paths or `~/`; shell variables such as `$HOME` are not expanded. Up to 16 folders fit in the 1,024-character setting. `[]` intentionally lists nothing.
+Saving is asynchronous. On failure, your draft stays editable and disk is unchanged. If another process changed the same values, reopen Settings rather than overwriting them. **Saved; reload needed** means the file was committed but refreshing the worker failed; it is not a rolled-back save.
 
-Folders can be elsewhere on disk; they do not need to live in the plugin checkout. An explicitly configured folder may itself be a symlink; its current resolved target is the allowed root. Nested folder/file symlinks and hidden entries are skipped. Unavailable folders produce a warning while other configured folders remain usable.
+## Browse and apply
 
-Save before opening the tool. Do not edit a source file to configure personal folders, or commit personal settings to this repository.
+Search filenames/folders; all words must occur in the full path. Choose **All folders** or a configured folder from the dropdown. Single-click/↑/↓ updates the large preview; it does not call awww. Thumbnails and preview decoding run in bounded background jobs. Narrow windows stack the detail below the list; quick controls remain available through Options.
 
-## Pick, preview, apply
+**Enter / Apply to all displays** explicitly sends one validated request for the selected file. The file's allowed-folder scope and recorded identity are rechecked immediately before execution. There is no separate Apply confirmation tab. Escape/Back before applying does not send a change.
 
-1. Search KITE for **Hyprland Wallpapers** and open it.
-2. Type part of a filename or folder path. All search words must occur somewhere in the full path.
-3. Select a result and press Enter. KITE shows its normal bounded image preview.
-4. Press **Apply to all displays** to send exactly one `awww img -- /absolute/file` request. The file is rechecked against the current allowed folders and recorded identity before sending.
-5. KITE returns to the list with a success notification when the client succeeds. Cancel/Esc before applying does not send a request.
+All displays means every output of the default awww daemon namespace: no `--outputs` restriction and no `--all` flag. There is no monitor selector, random-image picker, background rotation, raw shell command or desktop-changing preview. Choosing a random **transition** does not choose a random image.
 
-No monitor selector, background rotation, random selection, daemon startup or arbitrary shell command is involved. The `--outputs` option is omitted, so all outputs in the default daemon namespace are targeted. The plugin does **not** use `--all`, which would affect other daemon namespaces too. Normal awww resize/transition defaults and inherited `AWWW_TRANSITION_*` settings remain in effect.
+## Image and transition options
 
-## Refresh and limits
+Quick controls expose **Fit**, **Transition** and **Duration**. **Options…** opens the same contract-driven editor used by Settings. Changes here affect only the session/next Apply; **Save defaults** explicitly persists them. **Reset** returns session options to unset/backend inheritance. Permanent defaults can also be edited in Plugin Settings.
 
-The worker keeps a metadata-only file index so typing does not rescan folders on every keystroke. Use **Ctrl+R / Refresh wallpapers** after adding, moving or changing files. No persistent wallpaper index, image-content cache or list of recently applied images is written by this plugin. awww's own cache remains under awww's control.
+Check **Default / Backend default** to leave an option unset. Unset options do not generate CLI flags, so awww defaults and inherited `AWWW_TRANSITION_*` variables remain effective. Explicit false Y-inversion overrides inherited `INVERT_Y=true` without pretending that omitting a flag means false.
 
-- Recursive scan: at most 10,000 directory entries and 2,000 images. A limit warning means you should configure narrower folders.
-- PNG, JPEG, WebP, GIF, BMP, TIFF and AVIF filenames are accepted; actual decoding depends on awww's build.
-- Regular, nonempty files up to 32 MiB only. Unsupported, unreadable, oversized and invalid-UTF-8 filenames are skipped.
-- At most 200 matches are returned per query; refine the search to find more.
-- Qt previews have separate safety limits (16 MiB, 32 million pixels) and installed decoder requirements. A preview may be unavailable even if awww can display the file. Animated previews show a still frame.
-- The awww client has a five-second deadline. Large/animated files may exceed it.
+| Control | Meaning |
+| --- | --- |
+| Fit | Crop/fill, fit the whole image, stretch, or original size (`no`) |
+| Crop position | Nine anchors; requires crop mode |
+| Padding color | RGB/RGBA hexadecimal, including alpha, via a native color picker |
+| Scaling filter | Nearest, Bilinear, CatmullRom, Mitchell or Lanczos3 |
+| Transition | none, simple, fade, left/right/top/bottom, wipe, wave, grow, center, any, outer or random |
+| Duration | Seconds, 0–120; **not used by simple or none** |
+| Step | 1–255; controls simple speed (awww normally uses 2); 255 is immediate |
+| FPS | 1–240, a KITE safety range; awww normally uses 30 |
+| Angle | Wipe/wave degrees, −360 to 360 |
+| Position | Named anchor or custom fraction/pixel X/Y; both custom coordinates are required |
+| Bézier | Four numeric control coordinates, −10 to 10; set all together; all-zero is invalid |
+| Wave | Width and height together, 0.001–10,000 |
+| Invert Y | Flip the transition origin's Y coordinate |
 
-## Troubleshooting
+Custom fraction coordinates use 0–1; pixel coordinates must be whole numbers up to 32,768. The backend preserves the decimal representation of fraction `1.0`, because awww interprets integer `1` as a pixel coordinate. The bounds above are KITE's documented UI/safety policy, not a claim that every awww CLI range is identical.
 
-- **Settings opens a blank page:** the original KITE v0.1.0 has a selection bug. Use KITE's current main with the [Settings fix](https://github.com/Kabil777/kite/commit/11d7b494f44e48b5ff4194f7bbc00f4c3522d8c3), then close and reopen KITE.
-- **No images:** save valid existing folders in Settings, check permissions and supported extensions, then refresh. Hidden files and nested symlinks are deliberately excluded.
-- **File changed / selection expired:** return to the list, refresh and preview again. Deleted/replaced files are not silently substituted for the old selection.
-- **awww not installed:** install it outside KITE. Nothing is compiled or downloaded by this plugin.
-- **Daemon/session error:** confirm your default `awww-daemon` is running in the same Wayland session as KITE. A daemon started only under a custom namespace is not targeted.
-- **Timeout or backend error:** some outputs may already have changed. Check the desktop before retrying; KITE does not retry or roll back automatically.
+The in-app still preview preserves the source image's aspect ratio. It is not a compositor simulation of cropping/transitions; Apply lets awww perform the actual resize and animation.
+
+CLI behavior was checked against awww v0.12.1 [argument definitions](https://codeberg.org/LGFae/awww/src/tag/v0.12.1/client/src/cli.rs) and [client request handling](https://codeberg.org/LGFae/awww/src/tag/v0.12.1/client/src/main.rs). No upstream implementation is bundled.
+
+## Refresh, bounds and failures
+
+- **Ctrl+R / Refresh wallpapers** rebuilds the worker's metadata index after files are added/changed. It is not a filesystem watcher.
+- At most 10,000 directory entries, 2,000 indexed images and 200 matches per query. Narrow folders/refine the search if a limit is reached.
+- Supported raster filenames: PNG, JPEG, WebP, GIF, BMP, TIFF and AVIF. Regular, nonempty files up to 32 MiB; unreadable, oversized, hidden, symlinked and invalid-UTF-8 entries are skipped.
+- Host previews have separate limits: 16 MiB, 32 million pixels, installed Qt decoder availability. Animated files show a still frame. A preview can be unavailable while awww can still display the file; the selected filename remains explicit.
+- Image jobs: two decoders, bounded queue and 32-MiB decoded cache, all in memory. No persistent image/index/recent-wallpaper cache is written by this plugin; awww manages its own cache.
+- The client deadline is five seconds, independent of transition animation duration. Large/animated preprocessing or a stalled daemon can exceed it.
+- A client error or timeout may happen after some outputs changed. Check the desktop before retrying; KITE neither retries nor rolls back automatically.
+- Changed/deleted/replaced files require Refresh and a new selection; they are not silently substituted for an old result.
+
+**Blank/old Settings or apparent save/navigation freeze:** close the old KITE process and use the matching updated host. Typed Settings keep the draft on error and retire the completed form so hidden dirty state cannot block Back/Close.
 
 ## Disable, update or remove
 
-**Disallow in KITE** stops activation without touching wallpaper files or the daemon. For a source update, close KITE, review/pull changes in the linked registry checkout, and reopen it. For removal, close KITE and remove only the source link you created after checking its target. Never replace a manager-owned link by hand. None of these steps resets your wallpaper or deletes image folders.
+**Disallow in KITE** prevents activation without changing image folders or the daemon. Close KITE before updating a source checkout, review/pull both compatible core and plugin changes, then reopen. For removal, inspect and remove only the authored source link you created; never replace or delete a manager-owned link manually. No step here resets your wallpaper or deletes images.
 
-Plugins have your user's privileges. The configured-folder checks prevent accidental out-of-scope selections, not access by hostile code or adversarial filesystem races. Cancelling after an apply request has been sent cannot undo a wallpaper change.
+Plugins retain your user's privileges. Allowed-folder checks are safeguards against accidental selection, not a hostile-code or adversarial-filesystem sandbox. Cancelling after a request was sent cannot undo a wallpaper change.
