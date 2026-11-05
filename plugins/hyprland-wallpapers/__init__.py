@@ -1,6 +1,6 @@
 """Native split wallpaper browser; selection previews and only activation applies."""
 from plugin_api import Action, Catalog, MenuAction, Node, Result, Toast, View, plugin_config
-from .backend import OPTION_FIELDS, WallpaperError, apply, directories, scan
+from .backend import WallpaperError, apply, directories, scan
 
 PLUGIN_ID = 'hyprland-wallpapers'
 # ponytail: worker-local metadata index; Ctrl+R rescans. Add watchers only if live updates are needed.
@@ -39,13 +39,12 @@ def _results(query, host, force=False, toast=None):
                                preview=Node('image_preview', item.id + '-image', {'source': str(item.path), 'alt': item.path.name}))
                         for item in matches[:200])
         footer = (f'{len(matches)} matches; refine your search (first 200 shown).' if len(matches) > 200 else
-                  '↑/↓ previews · Enter applies · Simple uses Step, not Duration.')
+                  '↑/↓ previews · Enter applies · Ctrl+R refreshes.')
         return View(title='Hyprland Wallpapers', results=results, error=warning[:512], toast=toast,
                     actions=(MenuAction('refresh', 'Refresh wallpapers', Action('activate', 'refresh'), glyph='\uf021', shortcut='Ctrl+R'),),
                     catalog=Catalog(placeholder='Search wallpapers…', heading='Wallpapers', footer=footer,
                                     preserve_order=True, layout='list_detail', filters=tuple(_filters(roots)),
-                                    settings_keys=('resize', 'transition_type', 'transition_duration'),
-                                    option_keys=tuple(field['key'] for field in OPTION_FIELDS), primary_label='Apply to all displays',
+                                    primary_label='Apply to all displays',
                                     empty='Add folders in Plugin Settings to begin.' if not roots else 'No matching wallpapers.'))
     except WallpaperError as error:
         return View(title='Hyprland Wallpapers', error=str(error)[:512])
@@ -73,11 +72,9 @@ def handle_event(event, host):
         item = _entries.get(event.node_id)
         if item is None or event.name != 'activate':
             raise WallpaperError('Wallpaper selection expired. Refresh the list.')
-        overrides = event.payload.get('settings', {})
-        if not isinstance(overrides, dict) or set(overrides) - {field['key'] for field in OPTION_FIELDS}:
-            raise WallpaperError('Invalid image options snapshot.')
-        options = {**plugin_config(host, PLUGIN_ID), **overrides}
-        apply(item, roots, host.cancelled, options)
+        if event.payload.get('settings'):
+            raise WallpaperError('Configure image options in Marketplace → Plugin Settings.')
+        apply(item, roots, host.cancelled, plugin_config(host, PLUGIN_ID))
         return _results(query, host, toast=Toast('Wallpaper applied', 'All default-namespace displays.', 'success'))
     except WallpaperError as error:
         return Toast('Wallpaper action failed', str(error)[:512], 'error')

@@ -60,12 +60,17 @@ def main():
             validate_view(view)
             assert from_wire(json.loads(json.dumps(to_wire(view)))) == view
             assert len(view.results) == 2 and view.catalog.layout == 'list_detail' and not view.nodes
+            assert not view.catalog.settings_keys and not view.catalog.option_keys
+            def configured(options):
+                return HostServices({'plugins': {'hyprland-wallpapers': {'config': {
+                    **config['plugins']['hyprland-wallpapers']['config'], **options}}}})
             assert len(plugin.search('nested ocean', host).results) == 1
             row = next(row for row in view.results if row.title == first.name)
             assert row.preview.props['source'] == str(first) and not row.action.push
             assert not log.exists(), 'Search/preview descriptors must not execute awww'
             for event in (Event('unknown', 'activate'), Event(row.id, 'submit'), Event(row.id, 'activate', {'query': []}),
-                          Event(row.id, 'activate', {'settings': {'extra_args': ';touch pwn'}})):
+                          Event(row.id, 'activate', {'settings': {'extra_args': ';touch pwn'}}),
+                          Event(row.id, 'activate', {'settings': {'transition_type': 'fade'}})):
                 failed = plugin.handle_event(event, host)
                 validate_toast(failed)
                 assert failed.tone == 'error' and not log.exists()
@@ -77,7 +82,7 @@ def main():
                        'transition_angle': -45, 'position': 'custom-fraction', 'position_x': 1, 'position_y': .5,
                        'bezier_x1': 0, 'bezier_y1': 0, 'bezier_x2': 1, 'bezier_y2': 1,
                        'wave_width': 20, 'wave_height': 25, 'invert_y': True}
-            result = plugin.handle_event(Event(row.id, 'activate', {'settings': options}), host)
+            result = plugin.handle_event(Event(row.id, 'activate'), configured(options))
             assert result.toast.tone == 'success'
             args = json.loads(log.read_text().splitlines()[-1])
             for flag in ('--resize=crop', '--crop-gravity=top', '--fill-color=112233ff', '--filter=Nearest',
@@ -96,7 +101,7 @@ def main():
                             {'position': 'custom-pixels', 'position_x': .5, 'position_y': 1}, {'bezier_x1': 1},
                             {'bezier_x1': 0, 'bezier_y1': 0, 'bezier_x2': 0, 'bezier_y2': 0}, {'wave_width': 20}):
                 with patch.object(backend.subprocess, 'run') as execute:
-                    failed = plugin.handle_event(Event(row.id, 'activate', {'settings': invalid}), host)
+                    failed = plugin.handle_event(Event(row.id, 'activate'), configured(invalid))
                     assert failed.tone == 'error', invalid
                     execute.assert_not_called()
             with patch.object(backend.subprocess, 'run') as execute:

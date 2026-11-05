@@ -14,7 +14,7 @@ Do not start a second copy. For `hyprland.conf` profiles, normal session autosta
 
 ## Add folders without JSON
 
-Open **Plugin marketplace → Installed → Hyprland Wallpapers → Options → Settings**, or the browser's **Settings** button / **Actions → Plugin Settings**.
+Open **Plugin marketplace → Installed → Hyprland Wallpapers → Options → Settings**.
 
 - **Browse** selects a folder. Alternatively enter an absolute path or `~/Pictures/Wallpapers`, then click **Add**.
 - Double-click an item to edit; **Remove** deletes the selected entry; **Clear** empties the list.
@@ -27,7 +27,7 @@ Saving is asynchronous. On failure, your draft stays editable and disk is unchan
 
 ## Browse and apply
 
-Search filenames/folders; all words must occur in the full path. Choose **All folders** or a configured folder from the dropdown. Single-click/↑/↓ updates the large preview; it does not call awww. Thumbnails and preview decoding run in bounded background jobs. Narrow windows stack the detail below the list; quick controls remain available through Options.
+Search filenames/folders; all words must occur in the full path. Choose **All folders** or a configured folder from the dropdown. Single-click/↑/↓ updates the large preview; it does not call awww. Thumbnails and preview decoding run in bounded background jobs. Narrow windows stack the detail below the list. The picker contains only browsing and preview; options stay in Marketplace Settings.
 
 **Enter / Apply to all displays** explicitly sends one validated request for the selected file. The file's allowed-folder scope and recorded identity are rechecked immediately before execution. There is no separate Apply confirmation tab. Escape/Back before applying does not send a change.
 
@@ -35,7 +35,7 @@ All displays means every output of the default awww daemon namespace: no `--outp
 
 ## Image and transition options
 
-Quick controls expose **Fit**, **Transition** and **Duration**. **Options…** opens the same contract-driven editor used by Settings. Changes here affect only the session/next Apply; **Save defaults** explicitly persists them. **Reset** returns session options to unset/backend inheritance. Permanent defaults can also be edited in Plugin Settings.
+Configure all options in **Marketplace → Installed → Hyprland Wallpapers → Options → Settings**, then choose **Save configuration**. The saved values apply globally whenever you switch wallpapers. There are no quick controls, Options panel, Reset or Save defaults buttons in the wallpaper picker, and no per-selection overrides.
 
 Check **Default / Backend default** to leave an option unset. Unset options do not generate CLI flags, so awww defaults and inherited `AWWW_TRANSITION_*` variables remain effective. Explicit false Y-inversion overrides inherited `INVERT_Y=true` without pretending that omitting a flag means false.
 

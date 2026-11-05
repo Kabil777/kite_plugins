@@ -1,6 +1,6 @@
 # Hyprland Wallpapers for KITE
 
-Browse a thumbnail list with a large selection preview, choose awww image/transition options, then **Apply to all displays**. Selection never changes your wallpaper.
+Browse a thumbnail list with a large selection preview, then **Apply to all displays**. Image/transition options are configured globally in Marketplace Settings, not in the picker. Selection never changes your wallpaper.
 
 **Optional source plugin.** Not installed by default; no marketplace archive is published yet. Use **current KITE main with typed Settings and split previews**—the original v0.1.0 app release is too old for this contract. Python/Qt still owns the UI; no extra Python dependencies or Rust build is needed.
 
@@ -29,8 +29,8 @@ Use your actual checkout location. **If the destination exists, stop; do not for
 1. **Plugin marketplace → Installed → Hyprland Wallpapers → Options → Settings**. Choose **Allow in KITE** if needed; YAML disables still take precedence.
 2. Under **Wallpaper folders**, use **Browse** or enter a folder and click **Add**, then **Save configuration**. No JSON editing. Existing valid JSON-list settings load automatically and become typed lists only on Save.
 3. Open **Hyprland Wallpapers** from KITE search. Click or use ↑/↓ to preview; use the folder dropdown to narrow the list.
-4. Adjust Fit/Transition/Duration, or open **Options…** for the remaining awww controls. These edits are temporary. **Save defaults** explicitly remembers them; **Reset** restores backend-default inheritance in the session.
-5. **Enter / Apply to all displays** changes the wallpaper. **Ctrl+R** refreshes files. Settings can also be opened from the browser or its Actions.
+4. **Enter / Apply to all displays** changes the wallpaper using your saved global options. **Ctrl+R** refreshes files.
+5. To change Fit, transitions, duration or advanced controls, return to **Marketplace → Hyprland Wallpapers → Settings**, edit them, and **Save configuration**. The picker has no inline option controls.
 
 Leave **Default** checked to inherit awww behavior/environment. Duration is not used by `simple` or `none`; simple speed uses **Transition step**. All displays targets default-namespace outputs, not every daemon namespace.
 
